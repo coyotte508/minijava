@@ -1,4 +1,4 @@
-s for your own project dependencies
+#Edit this for your own project dependencies
 OPAM_DEPENDS="ocamlfind ounit re"
  
  case "$OCAML_VERSION,$OPAM_VERSION" in
