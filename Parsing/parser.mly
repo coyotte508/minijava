@@ -2,8 +2,8 @@
 	open Expr
 %}
 
-%token CLASS EOF
-%token <string> IDENT
+%token CLASS EOF LCURL RCURL
+%token <string> LIDENT UIDENT
 
 (* Entry point *)
 %start compile
@@ -13,5 +13,5 @@
 compile:
 | c=_class EOF {c}
 _class:
-| CLASS d=IDENT { Class(d) }
+| CLASS d=UIDENT LCURL RCURL { Class(d) }
 %%

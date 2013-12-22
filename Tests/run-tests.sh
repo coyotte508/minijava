@@ -2,7 +2,6 @@
 
 EXE=./Main.native
 
-
 function ensure_good_run(){
     if [[ $? != 0 ]]; then
         echo "Tests failed :("
@@ -10,9 +9,41 @@ function ensure_good_run(){
     fi
 }
 
+function ensure_bad_run(){
+    if [[ $? == 0 ]]; then
+        echo "Tests failed :("
+        exit 1
+    fi
+}
+
 echo "Running tests..."
 
-$EXE Tests/Basic.java
-ensure_good_run
+echo "============================"
+echo "Running tests valid examples"
+echo "============================"
+
+readarray <<HERE
+Class.java
+HERE
+
+for a in "${MAPFILE[@]}"; do
+	echo "testing $a"
+    $EXE Tests/$a > /dev/null
+    ensure_good_run
+done
+
+echo "================================="
+echo "Running tests on invalid examples"
+echo "================================="
+
+readarray <<HERE
+BadClass.java
+HERE
+
+for a in "${MAPFILE[@]}"; do
+	echo "testing $a"
+    $EXE Tests/$a &> /dev/null
+    ensure_bad_run
+done
 
 echo "Tests all good!"
