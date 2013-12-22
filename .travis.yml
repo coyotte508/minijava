@@ -1,7 +1,9 @@
 language: c
-install: bash -ex .travis-ci.sh
+install: bash -ex .travis-ci.sh && sudo apt-get install menhir
 env:
     - OCAML_VERSION=4.01.0 OPAM_VERSION=1.0.0
 
 script:
-    ocamlbuild Main.native && ./Tests/run-tests.sh
+    pwd && ocamlbuild Main.native && ./Tests/run-tests.sh
+notifications:
+  email: false
