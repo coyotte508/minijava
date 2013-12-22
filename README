@@ -1,8 +1,7 @@
 The minijavac compiler.
 
-A compilation project for Thrid year students of Telecom Bretagne.
+`ocamlbuild Main.byte` (or native) to build the compiler.
 
-ocamlbuild Main.byte (or native) to build the compiler.
+`ocamlbuild Main.byte -- filename`  to build and then execute the compiler on the given file.
 
-ocamlbuild Main.byte -- filename (or native) to build and then execute
-the compiler on the file given.
+`./Tests/run-tests.sh` to run the tests (build in native first).
