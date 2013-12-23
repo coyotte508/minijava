@@ -38,6 +38,8 @@ rule nexttoken = parse
 | "class" { CLASS }
 | "{" { LCURL }
 | "}" { RCURL }
+| "(" { LPAR }
+| ")" { RPAR }
 | ";" { SEMICOLON }
 | "=" { ASSIGN }
 | "+" { PLUS }

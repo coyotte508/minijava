@@ -3,7 +3,8 @@
 	open Exceptions
 %}
 
-%token CLASS EOF LCURL RCURL SEMICOLON ASSIGN
+%token CLASS EOF SEMICOLON ASSIGN
+%token LPAR RPAR LCURL RCURL
 %token PLUS MINUS TIMES DIVIDED
 %token <string> LIDENT UIDENT STRING
 %token <int> INT
@@ -11,6 +12,7 @@
 %left PLUS MINUS
 %left TIMES DIVIDED
 %right SPLUS SMINUS
+%right SEMICOLON
 
 (* Entry point *)
 %start compile
@@ -32,13 +34,17 @@ var:
 | _type=UIDENT name=LIDENT SEMICOLON { Var {_type = _type; name=name} }
 | _type=UIDENT name=LIDENT ASSIGN e=expr { VarAssign ({_type = _type; name=name}, e)}
 blexpr: /* bottom-level expression */
-| MINUS e=blexpr %prec SMINUS    {SOperation(SMinus, e)} 
-| PLUS e=blexpr %prec SPLUS      {SOperation(SPlus, e)} 
-| e1=blexpr op=binop e2=blexpr {Operation(e1, op, e2)}
-| a=assign                     {a}
-| name=LIDENT                  {Name name}
-| v=INT                        {Int v}
-| v=STRING                     {String v}
+| MINUS e=blexpr %prec SMINUS      {SOperation(SMinus, e)} 
+| PLUS e=blexpr %prec SPLUS        {SOperation(SPlus, e)} 
+| e1=blexpr op=binop e2=blexpr     {Operation(e1, op, e2)}
+| a=assign                         {a}
+| name=LIDENT                      {Name name}
+| v=INT                            {Int v}
+| v=STRING                         {String v}
+| LPAR e=exprlist RPAR             {e}
+exprlist:
+| e=blexpr {e}
+| ex=expr e=exprlist {ExpressionBlock(ex,e)} 
 assign:
 | name=LIDENT ASSIGN e=blexpr { Assign (name, e) }
 attribute:

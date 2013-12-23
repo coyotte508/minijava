@@ -22,6 +22,8 @@ type expression =
 	| Name of string
 	| Operation of expression * binop * expression
 	| SOperation of unop * expression
+	(* Two expressions, to execute in order *)
+	| ExpressionBlock of expression * expression
 
 type class_or_expr = 
 	| Class of _class

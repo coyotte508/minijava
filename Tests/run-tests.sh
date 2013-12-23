@@ -32,6 +32,7 @@ Variable4.java
 Comments.java
 Expressions.java
 Expressions2.java
+Expressions3.java
 Mixed1.java
 HERE
 
