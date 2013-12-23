@@ -40,6 +40,10 @@ rule nexttoken = parse
 | "}" { RCURL }
 | ";" { SEMICOLON }
 | "=" { ASSIGN }
+| "+" { PLUS }
+| "-" { MINUS }
+| "*" { TIMES }
+| "/" { DIVIDED }
 | uident { UIDENT (Lexing.lexeme lexbuf) }
 | lident { LIDENT (Lexing.lexeme lexbuf) }
 | integer { INT (int_of_string (Lexing.lexeme lexbuf)) }

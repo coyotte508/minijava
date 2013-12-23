@@ -4,8 +4,11 @@
 %}
 
 %token CLASS EOF LCURL RCURL SEMICOLON ASSIGN
+%token PLUS MINUS TIMES DIVIDED
 %token <string> LIDENT UIDENT STRING
 %token <int> INT
+
+%left PLUS MINUS
 
 (* Entry point *)
 %start compile
@@ -26,12 +29,18 @@ expr:
 var:
 | _type=UIDENT name=LIDENT SEMICOLON { Var {_type = _type; name=name} }
 | _type=UIDENT name=LIDENT ASSIGN e=expr { VarAssign ({_type = _type; name=name}, e)}
-blexpr:
+blexpr: /* bottom-level expression */
 | a=assign {a}
 | v=INT {Int v}
 | v=STRING {String v}
+| e1=blexpr op=binop e2=blexpr {Combination(e1, op, e2)}
 assign:
 | name=LIDENT ASSIGN e=blexpr { Assign (name, e) }
 attribute:
 | _type=UIDENT name=LIDENT SEMICOLON { Attribute {_type = _type; name=name} }
+binop:
+| MINUS    { Minus }
+| PLUS     { Plus }
+| TIMES    { Times }
+| DIVIDED  { Divided }
 %%
