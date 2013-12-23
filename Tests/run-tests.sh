@@ -24,6 +24,7 @@ echo "============================"
 
 readarray <<HERE
 Class.java
+Class2.java
 HERE
 
 for a in "${MAPFILE[@]}"; do

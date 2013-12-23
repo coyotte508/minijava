@@ -1,1 +1,4 @@
-class A { Int x; Boolean b; }
+class A {
+    Int x;
+    String s;
+}
