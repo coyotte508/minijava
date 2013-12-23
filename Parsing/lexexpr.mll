@@ -11,6 +11,8 @@ let uident = uletter (letter | digit | '_')*
 let lident = lletter (letter | digit | '_')*
 let newline = ("\r\n" | '\r' | '\n')
 let space = [' ' '\t']
+let integer = digit+
+let string = "\"" [^'"']* "\""
 
 rule nexttoken = parse 
   space+ { nexttoken lexbuf }
@@ -20,5 +22,9 @@ rule nexttoken = parse
 | "{" { LCURL }
 | "}" { RCURL }
 | ";" { SEMICOLON }
+| "=" { ASSIGN }
 | uident { UIDENT (Lexing.lexeme lexbuf) }
 | lident { LIDENT (Lexing.lexeme lexbuf) }
+| integer { INT (int_of_string (Lexing.lexeme lexbuf)) }
+| string { STRING (Lexing.lexeme lexbuf) }
+| _ as c { raise (Failure ("Unrecognized character: '" ^ (String.make 1 c) ^ "'")) }
