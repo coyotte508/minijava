@@ -28,6 +28,9 @@ Class2.java
 Variable.java
 Variable2.java
 Variable3.java
+Variable4.java
+Comments.java
+Mixed1.java
 HERE
 
 for a in "${MAPFILE[@]}"; do

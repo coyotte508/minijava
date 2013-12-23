@@ -1,3 +1,5 @@
+open Str
+
 let verbose = ref false
 
 let get_file str =
