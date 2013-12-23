@@ -4,6 +4,7 @@
 	open String
 
 	let rec repeat n f = match n with
+	| 0 -> (function x -> ())
 	| 1 -> f
 	| n -> (function x -> (f x; repeat (n-1) f x;))
 	let count_lines str =
