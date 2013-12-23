@@ -9,14 +9,19 @@ type _class = {name: string; attributes: attribute list}
 
 type binop =
 	| Plus | Minus | Divided | Times
-	
+
+type unop = 
+	| SPlus | SMinus 
+
 type expression =
 	| Var of _attribute
 	| Assign of string * expression
 	| VarAssign of _attribute * expression
 	| Int of int
 	| String of string
-	| Combination of expression * binop * expression
+	| Name of string
+	| Operation of expression * binop * expression
+	| SOperation of unop * expression
 
 type class_or_expr = 
 	| Class of _class

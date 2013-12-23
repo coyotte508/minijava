@@ -8,4 +8,6 @@ class A {
 String s = "abc";
 Int x = 0;
 
-x = 100-5;
+Int y = x * 2;
+x = -100-5;
+//Int y = x * 2;
