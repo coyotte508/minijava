@@ -3,16 +3,17 @@
 	open Exceptions
 %}
 
-%token CLASS EOF SEMICOLON ASSIGN
+%token CLASS EOF SEMICOLON ASSIGN COMMA
 %token LPAR RPAR LCURL RCURL
 %token PLUS MINUS TIMES DIVIDED
 %token <string> LIDENT UIDENT STRING
 %token <int> INT
 
+(* %left SEMICOLON (* x = 1+1; y=3+1; -> of course the statements in each branch have priority *)*)
+%left ASSIGN (* a = 1+1 -> of course 1+1 has priority *)
 %left PLUS MINUS
 %left TIMES DIVIDED
 %right SPLUS SMINUS
-%right SEMICOLON
 
 (* Entry point *)
 %start compile
@@ -25,8 +26,15 @@ compile:
 class_or_expr:
 | c=_class { c}
 | e=expr {Expression e}
+| m=_method {m}
 _class:
 | CLASS name=UIDENT LCURL attrs=attribute* RCURL { Class {name=name; attributes=attrs} }
+_method:
+| _type=UIDENT name=LIDENT LPAR args=arglist RPAR LCURL body=expr* RCURL { Method {name=name; return_type=_type; arguments=args; body=body} }
+arglist:
+| {[]}
+| _type=UIDENT name=LIDENT { [{_type=_type; name=name}] }
+| _type=UIDENT name=LIDENT COMMA args=arglist { {_type=_type; name=name} :: args }
 expr:
 | v=var {v}
 | e=blexpr SEMICOLON {e}
@@ -43,8 +51,8 @@ blexpr: /* bottom-level expression */
 | v=STRING                         {String v}
 | LPAR e=exprlist RPAR             {e}
 exprlist:
-| e=blexpr {e}
 | ex=expr e=exprlist {ExpressionBlock(ex,e)} 
+| e=blexpr {e}
 assign:
 | name=LIDENT ASSIGN e=blexpr { Assign (name, e) }
 attribute:

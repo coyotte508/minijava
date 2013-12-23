@@ -33,6 +33,9 @@ Comments.java
 Expressions.java
 Expressions2.java
 Expressions3.java
+Function.java
+Function2.java
+Function3.java
 Mixed1.java
 HERE
 

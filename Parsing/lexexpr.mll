@@ -46,6 +46,7 @@ rule nexttoken = parse
 | "-" { MINUS }
 | "*" { TIMES }
 | "/" { DIVIDED }
+| "," { COMMA }
 | uident { UIDENT (Lexing.lexeme lexbuf) }
 | lident { LIDENT (Lexing.lexeme lexbuf) }
 | integer { INT (int_of_string (Lexing.lexeme lexbuf)) }
