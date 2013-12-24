@@ -9,6 +9,7 @@
 %token EQ LESSER LESSEREQ GREATER GREATEREQ NOTEQ
 %token <string> LIDENT UIDENT STRING
 %token <int> INT
+%token <bool> BOOL
 
 (* %left SEMICOLON (* x = 1+1; y=3+1; -> of course the statements in each branch have priority *)*)
 %left ASSIGN (* a = 1 || 2 -> of course 1 || 2 has priority *)
@@ -59,6 +60,7 @@ blexpr: /* bottom-level expression */
 | name=LIDENT                      {Name name}
 | v=INT                            {Int v}
 | v=STRING                         {String v}
+| v=BOOL                           {Bool v}
 | LPAR e=blexpr RPAR               {e}
 | LPAR ex=expr* RPAR               {ExpressionBlock(ex)}
 | name=LIDENT LPAR args=callargslist RPAR {FunctionCall(name, args)}

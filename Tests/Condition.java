@@ -2,7 +2,7 @@ if (0) {
 	print("You can't see me");
 }
 
-if (1) {
+if (true) {
 	print (":(");
 } else {
 	print (":)");

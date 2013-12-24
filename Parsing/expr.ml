@@ -20,12 +20,12 @@ type expression =
 	| Assign of string * expression
 	| VarAssign of _attribute * expression
 	| Int of int
+    | Bool of bool
 	| String of string
 	| Name of string
 	| Unit (* Nothing, () *)
 	| Operation of expression * binop * expression
 	| SOperation of unop * expression
-	(* Two expressions, to execute in order *)
 	| ExpressionBlock of expression list
 	| FunctionCall of string * expression list
 	| If of expression * expression list
@@ -76,6 +76,7 @@ let rec dexpr_to_string expr =
 		| Assign (str,expr) -> str ^ " = (" ^ (dexpr_to_string expr) ^ ")"
 		| VarAssign (a, expr) ->  "varassign " ^ (dattr_to_string a) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
 		| Int x -> string_of_int x
+        | Bool x -> string_of_bool x
 		| String s -> s
 		| Name s -> s
 		| Unit -> "(Empty)"
