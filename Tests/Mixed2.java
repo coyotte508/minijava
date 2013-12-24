@@ -1,6 +1,6 @@
 String result = 
 	(
-		if (good) {
+		if (good && !bad) {
 			"Merry Christmas";
 		} else {
 			"No presents for you!";

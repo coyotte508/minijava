@@ -8,10 +8,12 @@ type attribute = | Attribute of _attribute
 type _class = {name: string; attributes: attribute list}
 
 type binop =
-	| Plus | Minus | Divided | Times
+	| Plus | Minus | Divided | Times | Mod
+    | Eq | Lesser | Greater | LesserEq | GreaterEq | NotEq
+    | And | Or
 
 type unop = 
-	| SPlus | SMinus 
+	| SPlus | SMinus | SNot
 
 type expression =
 	| Var of _attribute
@@ -52,10 +54,20 @@ let op_to_string = function
 	| Minus -> "-"
 	| Divided -> "/"
 	| Times -> "*"
+    | Mod -> "%"
+    | Eq -> "=="
+    | Lesser -> "<"
+    | Greater -> ">"
+    | LesserEq -> "<="
+    | GreaterEq -> ">="
+    | NotEq -> "!="
+    | And -> "and"
+    | Or -> "or"
 
 let unop_to_string = function
 	| SPlus -> "+"
 	| SMinus -> "-"
+    | SNot -> "!"
 
 let rec dexpr_to_string expr = 
 	let rec body_to_string body = "{\n" ^ (String.concat "\n" (List.map (function x -> (dexpr_to_string x) ^ ";") body)) ^ "\n}"

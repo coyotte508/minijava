@@ -41,14 +41,24 @@ rule nexttoken = parse
 | "(" { LPAR }
 | ")" { RPAR }
 | ";" { SEMICOLON }
+| "<=" { LESSEREQ }
+| ">=" { GREATEREQ }
+| "==" { EQ }
+| "!=" { NOTEQ }
+| ">" { GREATER }
+| "<" { LESSER }
 | "=" { ASSIGN }
+| "!" { NOT }
 | "+" { PLUS }
 | "-" { MINUS }
 | "*" { TIMES }
 | "/" { DIVIDED } 
 | "," { COMMA }
+| "%" { MOD }
 | "if" { IF }
 | "else" { ELSE }
+| "&&" { AND }
+| "||" { OR }
 | uident { UIDENT (Lexing.lexeme lexbuf) }
 | lident { LIDENT (Lexing.lexeme lexbuf) }
 | integer { INT (int_of_string (Lexing.lexeme lexbuf)) }

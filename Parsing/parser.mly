@@ -3,17 +3,22 @@
 	open Exceptions
 %}
 
-%token CLASS EOF SEMICOLON ASSIGN COMMA IF ELSE
+%token CLASS EOF SEMICOLON ASSIGN COMMA IF ELSE AND OR
 %token LPAR RPAR LCURL RCURL
-%token PLUS MINUS TIMES DIVIDED
+%token PLUS MINUS TIMES DIVIDED MOD NOT
+%token EQ LESSER LESSEREQ GREATER GREATEREQ NOTEQ
 %token <string> LIDENT UIDENT STRING
 %token <int> INT
 
 (* %left SEMICOLON (* x = 1+1; y=3+1; -> of course the statements in each branch have priority *)*)
-%left ASSIGN (* a = 1+1 -> of course 1+1 has priority *)
+%left ASSIGN (* a = 1 || 2 -> of course 1 || 2 has priority *)
+%left OR
+%left AND
+%left EQ LESSER LESSEREQ GREATER GREATEREQ NOTEQ (* 1+1 > 2 is (1+1) > 2 *)
 %left PLUS MINUS
+%left MOD (* 2*2 % 3*2 is (2*2)%(3*2). 2+2%3 is 2+(2%3) *)
 %left TIMES DIVIDED
-%right SPLUS SMINUS
+%right SOP
 
 (* Entry point *)
 %start compile
@@ -46,8 +51,9 @@ condition:
 | IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL { If(cond, body) }
 | IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL ELSE LCURL elsebody=expr* RCURL { IfElse(cond, body, elsebody) }
 blexpr: /* bottom-level expression */
-| MINUS e=blexpr %prec SMINUS      {SOperation(SMinus, e)} 
-| PLUS e=blexpr %prec SPLUS        {SOperation(SPlus, e)} 
+| MINUS e=blexpr %prec SOP         {SOperation(SMinus, e)} 
+| PLUS e=blexpr %prec SOP          {SOperation(SPlus, e)}
+| NOT e=blexpr %prec SOP           {SOperation(SNot, e)} 
 | e1=blexpr op=binop e2=blexpr     {Operation(e1, op, e2)}
 | a=assign                         {a}
 | name=LIDENT                      {Name name}
@@ -65,8 +71,17 @@ assign:
 attribute:
 | _type=UIDENT name=LIDENT SEMICOLON { Attribute {_type = _type; name=name} }
 %inline binop:
-| MINUS    { Minus }
-| PLUS     { Plus }
-| TIMES    { Times }
-| DIVIDED  { Divided }
+| MINUS     { Minus }
+| PLUS      { Plus }
+| TIMES     { Times }
+| DIVIDED   { Divided }
+| GREATER   { Greater }
+| GREATEREQ { GreaterEq }
+| LESSER    { Lesser }
+| LESSEREQ  { LesserEq }
+| EQ        { Eq }
+| NOTEQ     { NotEq }
+| MOD       { Mod }
+| AND       { And }
+| OR        { Or }
 %%
