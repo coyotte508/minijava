@@ -50,6 +50,11 @@ blexpr: /* bottom-level expression */
 | v=INT                            {Int v}
 | v=STRING                         {String v}
 | LPAR e=exprlist RPAR             {e}
+| name=LIDENT LPAR args=callargslist RPAR {FunctionCall(name, args)}
+callargslist:
+| {[]}
+| bl=blexpr { [bl] }
+| bl=blexpr COMMA args=callargslist { bl :: args }
 exprlist:
 | ex=expr e=exprlist {ExpressionBlock(ex,e)} 
 | e=blexpr {e}

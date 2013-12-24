@@ -37,6 +37,7 @@ Function.java
 Function2.java
 Function3.java
 Mixed1.java
+FunctionCall.java
 HERE
 
 for a in "${MAPFILE[@]}"; do

@@ -25,6 +25,7 @@ type expression =
 	| SOperation of unop * expression
 	(* Two expressions, to execute in order *)
 	| ExpressionBlock of expression * expression
+	| FunctionCall of string * expression list
 
 type _method = {return_type: string; name: string;  arguments: _attribute list; body: expression list}
 
@@ -65,6 +66,8 @@ let rec dexpr_to_string = function
 	| Operation (e1, op, e2) -> "(" ^ (dexpr_to_string e1) ^ ") " ^ (op_to_string op) ^ " (" ^ (dexpr_to_string e2) ^ ")"
 	| SOperation (op, expr) -> (unop_to_string op) ^ (dexpr_to_string expr)
 	| ExpressionBlock (e1, e2) -> "eblock{(" ^ (dexpr_to_string e1) ^ ") ; (" ^ (dexpr_to_string e2) ^ ")}"
+	| FunctionCall (name, args) -> "call '" ^ name ^ "' with args: [" ^
+		(String.concat ", " (List.map (function x -> "("^(dexpr_to_string x)^")") args)) ^ "]"
 
 let method_to_string = function
     | {return_type = return_type; name = name; arguments = arguments; body = body} 
