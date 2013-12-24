@@ -3,7 +3,7 @@
 	open Exceptions
 %}
 
-%token CLASS EOF SEMICOLON ASSIGN COMMA IF ELSE AND OR
+%token CLASS EOF SEMICOLON ASSIGN COMMA IF ELSE EXTENDS AND OR
 %token LPAR RPAR LCURL RCURL
 %token PLUS MINUS TIMES DIVIDED MOD NOT
 %token EQ LESSER LESSEREQ GREATER GREATEREQ NOTEQ
@@ -34,7 +34,8 @@ class_or_expr:
 | e=expr {Expression e}
 | m=_method {m}
 _class:
-| CLASS name=UIDENT LCURL attrs=attribute* RCURL { Class {name=name; attributes=attrs} }
+| CLASS name=UIDENT LCURL attrs=attribute* RCURL { Class {name=name; attributes=attrs; parent="Object"} }
+| CLASS name=UIDENT EXTENDS parent=UIDENT LCURL attrs=attribute* RCURL { Class {name=name; attributes=attrs; parent=parent} }
 _method:
 | _type=UIDENT name=LIDENT LPAR args=arglist RPAR LCURL body=expr* RCURL { Method {name=name; return_type=_type; arguments=args; body=body} }
 arglist:

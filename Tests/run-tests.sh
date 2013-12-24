@@ -25,6 +25,7 @@ echo "============================"
 readarray <<HERE
 Class.java
 Class2.java
+Class3.java
 Variable.java
 Variable2.java
 Variable3.java
