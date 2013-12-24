@@ -24,8 +24,10 @@ type expression =
 	| Operation of expression * binop * expression
 	| SOperation of unop * expression
 	(* Two expressions, to execute in order *)
-	| ExpressionBlock of expression * expression
+	| ExpressionBlock of expression list
 	| FunctionCall of string * expression list
+	| If of expression * expression list
+	| IfElse of expression * expression list * expression list
 
 type _method = {return_type: string; name: string;  arguments: _attribute list; body: expression list}
 
@@ -55,19 +57,23 @@ let unop_to_string = function
 	| SPlus -> "+"
 	| SMinus -> "-"
 
-let rec dexpr_to_string = function
-	| Var a -> "var " ^ (dattr_to_string a) ^ ";"
-	| Assign (str,expr) -> str ^ " = (" ^ (dexpr_to_string expr) ^ ")"
-	| VarAssign (a, expr) ->  "varassign " ^ (dattr_to_string a) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
-	| Int x -> string_of_int x
-	| String s -> s
-	| Name s -> s
-	| Unit -> "(Empty)"
-	| Operation (e1, op, e2) -> "(" ^ (dexpr_to_string e1) ^ ") " ^ (op_to_string op) ^ " (" ^ (dexpr_to_string e2) ^ ")"
-	| SOperation (op, expr) -> (unop_to_string op) ^ (dexpr_to_string expr)
-	| ExpressionBlock (e1, e2) -> "eblock{(" ^ (dexpr_to_string e1) ^ ") ; (" ^ (dexpr_to_string e2) ^ ")}"
-	| FunctionCall (name, args) -> "call '" ^ name ^ "' with args: [" ^
-		(String.concat ", " (List.map (function x -> "("^(dexpr_to_string x)^")") args)) ^ "]"
+let rec dexpr_to_string expr = 
+	let rec body_to_string body = "{\n" ^ (String.concat "\n" (List.map (function x -> (dexpr_to_string x) ^ ";") body)) ^ "\n}"
+	in match expr with
+		| Var a -> "var " ^ (dattr_to_string a) ^ ";"
+		| Assign (str,expr) -> str ^ " = (" ^ (dexpr_to_string expr) ^ ")"
+		| VarAssign (a, expr) ->  "varassign " ^ (dattr_to_string a) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
+		| Int x -> string_of_int x
+		| String s -> s
+		| Name s -> s
+		| Unit -> "(Empty)"
+		| Operation (e1, op, e2) -> "(" ^ (dexpr_to_string e1) ^ ") " ^ (op_to_string op) ^ " (" ^ (dexpr_to_string e2) ^ ")"
+		| SOperation (op, expr) -> (unop_to_string op) ^ (dexpr_to_string expr)
+		| ExpressionBlock body -> (body_to_string body)
+		| FunctionCall (name, args) -> "call '" ^ name ^ "' with args: [" ^
+			(String.concat ", " (List.map dexpr_to_string args)) ^ "]"
+        | If (cond, body) -> "if (" ^ (dexpr_to_string cond) ^ ") " ^ (body_to_string body)
+        | IfElse (cond, body, elsebody) -> "if (" ^ (dexpr_to_string cond) ^ ") " ^ (body_to_string body) ^ " else " ^ (body_to_string elsebody)
 
 let method_to_string = function
     | {return_type = return_type; name = name; arguments = arguments; body = body} 

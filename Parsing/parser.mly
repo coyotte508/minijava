@@ -3,7 +3,7 @@
 	open Exceptions
 %}
 
-%token CLASS EOF SEMICOLON ASSIGN COMMA
+%token CLASS EOF SEMICOLON ASSIGN COMMA IF ELSE
 %token LPAR RPAR LCURL RCURL
 %token PLUS MINUS TIMES DIVIDED
 %token <string> LIDENT UIDENT STRING
@@ -37,10 +37,14 @@ arglist:
 | _type=UIDENT name=LIDENT COMMA args=arglist { {_type=_type; name=name} :: args }
 expr:
 | v=var {v}
+| i=condition {i}
 | e=blexpr SEMICOLON {e}
 var:
 | _type=UIDENT name=LIDENT SEMICOLON { Var {_type = _type; name=name} }
 | _type=UIDENT name=LIDENT ASSIGN e=expr { VarAssign ({_type = _type; name=name}, e)}
+condition:
+| IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL { If(cond, body) }
+| IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL ELSE LCURL elsebody=expr* RCURL { IfElse(cond, body, elsebody) }
 blexpr: /* bottom-level expression */
 | MINUS e=blexpr %prec SMINUS      {SOperation(SMinus, e)} 
 | PLUS e=blexpr %prec SPLUS        {SOperation(SPlus, e)} 
@@ -49,15 +53,13 @@ blexpr: /* bottom-level expression */
 | name=LIDENT                      {Name name}
 | v=INT                            {Int v}
 | v=STRING                         {String v}
-| LPAR e=exprlist RPAR             {e}
+| LPAR e=blexpr RPAR               {e}
+| LPAR ex=expr* RPAR               {ExpressionBlock(ex)}
 | name=LIDENT LPAR args=callargslist RPAR {FunctionCall(name, args)}
 callargslist:
 | {[]}
 | bl=blexpr { [bl] }
 | bl=blexpr COMMA args=callargslist { bl :: args }
-exprlist:
-| ex=expr e=exprlist {ExpressionBlock(ex,e)} 
-| e=blexpr {e}
 assign:
 | name=LIDENT ASSIGN e=blexpr { Assign (name, e) }
 attribute:
