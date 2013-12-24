@@ -5,5 +5,3 @@ env:
 
 script:
     pwd && ocamlbuild Main.native && ./Tests/run-tests.sh
-notifications:
-  email: false
