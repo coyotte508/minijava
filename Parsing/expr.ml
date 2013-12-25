@@ -3,19 +3,20 @@
    to a string
 *)
 
-type _attribute = {_type : string; name: string}
-type attribute = | Attribute of _attribute 
-type _class = {name: string; parent: string; attributes: attribute list}
-
 type binop =
-	| Plus | Minus | Divided | Times | Mod
+    | Plus | Minus | Divided | Times | Mod
     | Eq | Lesser | Greater | LesserEq | GreaterEq | NotEq
     | And | Or
 
 type unop = 
-	| SPlus | SMinus | SNot
+    | SPlus | SMinus | SNot
 
-type expression =
+type _attribute = {_type : string; name: string}
+
+type attribute_or_method = | Attribute of _attribute | Method of _method 
+and _class = {name: string; parent: string; attributes: _attribute list; methods: _method list}
+
+and expression =
 	| Var of _attribute
 	| Assign of string * expression
 	| VarAssign of _attribute * expression
@@ -31,29 +32,18 @@ type expression =
 	| If of expression * expression list
 	| IfElse of expression * expression list * expression list
 
-type _method = {return_type: string; name: string;  arguments: _attribute list; body: expression list}
+and _method = {return_type: string; name: string;  arguments: _attribute list; body: expression list}
 
 type class_or_expr = 
 	| Class of _class
 	| Expression of expression
-	| Method of _method
-
-let dattr_to_string = function
-	| {_type=t; name=n} -> t ^ " " ^ n
-
-let attr_to_string = function 
-	| Attribute a -> "\t" ^ (dattr_to_string a) ^ ";"
-
-let class_to_string = function |
-	Class({name=name; parent=parent; attributes=attrs}) ->
-		let str_list = ["class " ^ name ^ " inherits " ^ parent ^ " {"] @ (List.map attr_to_string attrs) @ ["}"] in
-		String.concat "\n" str_list
+	| Function of _method
 
 let op_to_string = function
-	| Plus -> "+"
-	| Minus -> "-"
-	| Divided -> "/"
-	| Times -> "*"
+    | Plus -> "+"
+    | Minus -> "-"
+    | Divided -> "/"
+    | Times -> "*"
     | Mod -> "%"
     | Eq -> "=="
     | Lesser -> "<"
@@ -65,11 +55,23 @@ let op_to_string = function
     | Or -> "or"
 
 let unop_to_string = function
-	| SPlus -> "+"
-	| SMinus -> "-"
+    | SPlus -> "+"
+    | SMinus -> "-"
     | SNot -> "!"
 
-let rec dexpr_to_string expr = 
+let dattr_to_string = function
+	| {_type=t; name=n} -> t ^ " " ^ n
+
+let attr_to_string = function 
+	| a -> "\t" ^ (dattr_to_string a) ^ ";"
+
+let rec class_to_string = function |
+	Class({name=name; parent=parent; attributes=attrs; methods=meths}) ->
+		let str_list = ["class " ^ name ^ " inherits " ^ parent ^ " {"] @ (List.map attr_to_string attrs) 
+        @ (List.map method_to_string meths)  @ ["}"] in
+		String.concat "\n" str_list
+
+and dexpr_to_string expr = 
 	let rec body_to_string body = "{\n" ^ (String.concat "\n" (List.map (function x -> (dexpr_to_string x) ^ ";") body)) ^ "\n}"
 	in match expr with
 		| Var a -> "var " ^ (dattr_to_string a) ^ ";"
@@ -88,7 +90,7 @@ let rec dexpr_to_string expr =
         | If (cond, body) -> "if (" ^ (dexpr_to_string cond) ^ ") " ^ (body_to_string body)
         | IfElse (cond, body, elsebody) -> "if (" ^ (dexpr_to_string cond) ^ ") " ^ (body_to_string body) ^ " else " ^ (body_to_string elsebody)
 
-let method_to_string = function
+and method_to_string = function
     | {return_type = return_type; name = name; arguments = arguments; body = body} 
 		-> "function " ^ return_type ^ " named " ^ name ^ " (" ^  (String.concat ", " (List.map dattr_to_string arguments)) ^ ") {\n"
 			^ (String.concat "\n" (List.map (function x -> (dexpr_to_string x) ^ ";") body))
@@ -97,7 +99,7 @@ let method_to_string = function
 let expr_to_string = function 
 	| Class cl -> class_to_string (Class cl)
 	| Expression expr -> dexpr_to_string(expr) ^ ";"
-	| Method m -> method_to_string m
+	| Function m -> method_to_string m
 
 let exprs_to_string = function |
  	l -> String.concat "\n" (List.map expr_to_string l)

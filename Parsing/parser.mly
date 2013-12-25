@@ -1,6 +1,16 @@
 %{
 	open Expr
 	open Exceptions
+
+	let rec getattrs = function 
+	| [] -> []
+	| (Attribute a)::t -> a::(getattrs t)
+	| h::t -> getattrs t
+
+	let rec getmeths = function 
+	| [] -> []
+	| (Method a)::t -> a::(getmeths t)
+	| h::t -> getmeths t
 %}
 
 %token CLASS EOF SEMICOLON ASSIGN COMMA IF ELSE EXTENDS AND OR
@@ -32,12 +42,12 @@ compile:
 class_or_expr:
 | c=_class { c}
 | e=expr {Expression e}
-| m=_method {m}
+| m=_function {Function m}
 _class:
-| CLASS name=UIDENT LCURL attrs=attribute* RCURL { Class {name=name; attributes=attrs; parent="Object"} }
-| CLASS name=UIDENT EXTENDS parent=UIDENT LCURL attrs=attribute* RCURL { Class {name=name; attributes=attrs; parent=parent} }
-_method:
-| _type=UIDENT name=LIDENT LPAR args=arglist RPAR LCURL body=expr* RCURL { Method {name=name; return_type=_type; arguments=args; body=body} }
+| CLASS name=UIDENT LCURL attrs=attribute_or_method* RCURL { Class {name=name; attributes=(getattrs attrs); methods=(getmeths attrs); parent="Object"} }
+| CLASS name=UIDENT EXTENDS parent=UIDENT LCURL attrs=attribute_or_method* RCURL { Class {name=name; attributes=(getattrs attrs); methods=(getmeths attrs); parent=parent} }
+_function:
+| _type=UIDENT name=LIDENT LPAR args=arglist RPAR LCURL body=expr* RCURL { {name=name; return_type=_type; arguments=args; body=body} }
 arglist:
 | {[]}
 | _type=UIDENT name=LIDENT { [{_type=_type; name=name}] }
@@ -71,8 +81,11 @@ callargslist:
 | bl=blexpr COMMA args=callargslist { bl :: args }
 assign:
 | name=LIDENT ASSIGN e=blexpr { Assign (name, e) }
+attribute_or_method:
+| a=attribute { Attribute a }
+| m=_function { Method m }
 attribute:
-| _type=UIDENT name=LIDENT SEMICOLON { Attribute {_type = _type; name=name} }
+| _type=UIDENT name=LIDENT SEMICOLON { {_type = _type; name=name} }
 %inline binop:
 | MINUS     { Minus }
 | PLUS      { Plus }

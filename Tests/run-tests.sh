@@ -41,6 +41,7 @@ Mixed1.java
 FunctionCall.java
 Conditions.java
 Mixed2.java
+Class4.java
 HERE
 
 for a in "${MAPFILE[@]}"; do
