@@ -14,7 +14,7 @@
 %}
 
 %token EOF SEMICOLON ASSIGN COMMA
-%token CLASS EXTENDS NEW DOT 
+%token CLASS EXTENDS NEW THIS DOT NULL
 %token IF ELSE AND OR
 %token LPAR RPAR LCURL RCURL
 %token PLUS MINUS TIMES DIVIDED MOD NOT
@@ -73,6 +73,8 @@ blexpr: /* bottom-level expression */
 | e1=blexpr op=binop e2=blexpr     {Operation(e1, op, e2)}
 | a=assign                         {a}
 | id=ident                         {Ident id}
+| THIS                             {This}
+| NULL                             {Null}
 | v=INT                            {Int v}
 | v=STRING                         {String v}
 | v=BOOL                           {Bool v}

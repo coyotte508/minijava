@@ -64,6 +64,8 @@ rule nexttoken = parse
 | "false" { BOOL false }
 | "extends" { EXTENDS }
 | "new" { NEW }
+| "this" { THIS }
+| "null" { NULL }
 | uident { UIDENT (Lexing.lexeme lexbuf) }
 | lident { LIDENT (Lexing.lexeme lexbuf) }
 | integer { INT (int_of_string (Lexing.lexeme lexbuf)) }

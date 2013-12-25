@@ -23,7 +23,9 @@ and expression =
 	| Int of int
     | Bool of bool
 	| String of string
+    | Null
 	| Ident of ident
+    | This
     | New of string
 	| Unit (* Nothing, () *)
 	| Operation of expression * binop * expression
@@ -92,6 +94,8 @@ and dexpr_to_string expr =
 		| Ident s -> ident_to_string s
         | New s -> "new " ^ s ^ "()"
 		| Unit -> "(Empty)"
+        | This -> "<this>"
+        | Null -> "<null>"
 		| Operation (e1, op, e2) -> "(" ^ (dexpr_to_string e1) ^ ") " ^ (op_to_string op) ^ " (" ^ (dexpr_to_string e2) ^ ")"
 		| SOperation (op, expr) -> (unop_to_string op) ^ (dexpr_to_string expr)
 		| ExpressionBlock body -> (body_to_string body)
