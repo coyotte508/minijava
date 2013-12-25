@@ -30,10 +30,12 @@
 %left EQ LESSER LESSEREQ GREATER GREATEREQ NOTEQ (* 1+1 > 2 is (1+1) > 2 *)
 %left INSTANCEOF (* 1+1 instanceof Int => (1+1) instanceof Int *)
 %left PLUS MINUS
+%right SMINUS
 %left MOD (* 2*2 % 3*2 is (2*2)%(3*2). 2+2%3 is 2+(2%3) *)
 %left TIMES DIVIDED
-%left DOT
 %right SOP
+%left DOT
+%right CAST (* (A) b.x is ((A)b).x *)
 
 (* Entry point *)
 %start compile
@@ -67,7 +69,8 @@ condition:
 | IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL { If(cond, body) }
 | IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL ELSE LCURL elsebody=expr* RCURL { IfElse(cond, body, elsebody) }
 blexpr: /* bottom-level expression */
-| NEW _class=UIDENT LPAR RPAR      { New(_class) }
+| NEW _class=UIDENT LPAR RPAR      {New(_class) }
+| LPAR _class=UIDENT RPAR e=blexpr %prec CAST {Cast(_class, e) }
 | MINUS e=blexpr %prec SOP         {SOperation(SMinus, e)} 
 | PLUS e=blexpr %prec SOP          {SOperation(SPlus, e)}
 | NOT e=blexpr %prec SOP           {SOperation(SNot, e)} 

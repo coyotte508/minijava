@@ -30,6 +30,7 @@ and expression =
 	| Unit (* Nothing, () *)
 	| Operation of expression * binop * expression
     | InstanceOf of expression * string
+    | Cast of string * expression
 	| SOperation of unop * expression
 	| ExpressionBlock of expression list
 	| FunctionCall of ident * expression list
@@ -97,7 +98,8 @@ and dexpr_to_string expr =
 		| Unit -> "(Empty)"
         | This -> "<this>"
         | Null -> "<null>"
-        | InstanceOf (e1, cl) -> "(" ^ (dexpr_to_string e1) ^ ") is of " ^ cl;
+        | Cast (_class, expr) -> "(("^(dexpr_to_string expr)^") -> " ^ _class ^ ")"
+        | InstanceOf (e1, cl) -> "(" ^ (dexpr_to_string e1) ^ ") is of " ^ cl
 		| Operation (e1, op, e2) -> "(" ^ (dexpr_to_string e1) ^ ") " ^ (op_to_string op) ^ " (" ^ (dexpr_to_string e2) ^ ")"
 		| SOperation (op, expr) -> (unop_to_string op) ^ (dexpr_to_string expr)
 		| ExpressionBlock body -> (body_to_string body)

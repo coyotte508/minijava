@@ -23,4 +23,18 @@ class B extends A {
 			b instanceof A;
 		}
 	}
+
+	Bool greeting(Object b) {
+		if (isFamily(b)) {
+			Int distance = (A)b.distance();
+			if (distance > 10) {
+				print("hello, oh so far away..." );
+			} else {
+				print("hi there");
+			}
+			true;
+		} else {
+			false;
+		}
+	}
 }
