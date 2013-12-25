@@ -30,7 +30,6 @@
 %left EQ LESSER LESSEREQ GREATER GREATEREQ NOTEQ (* 1+1 > 2 is (1+1) > 2 *)
 %left INSTANCEOF (* 1+1 instanceof Int => (1+1) instanceof Int *)
 %left PLUS MINUS
-%right SMINUS
 %left MOD (* 2*2 % 3*2 is (2*2)%(3*2). 2+2%3 is 2+(2%3) *)
 %left TIMES DIVIDED
 %right SOP
@@ -59,7 +58,7 @@ arglist:
 | _type=UIDENT name=LIDENT { [{_type=_type; name=name}] }
 | _type=UIDENT name=LIDENT COMMA args=arglist { {_type=_type; name=name} :: args }
 expr:
-| v=var {v}
+| v=var {VarCreation v}
 | i=condition {i}
 | e=blexpr SEMICOLON {e}
 var:
@@ -96,10 +95,8 @@ ident:
 | obj=blexpr DOT mvar=LIDENT       {MemberVar(obj, mvar)}
 | id=LIDENT                        {NamedIdent id}
 attribute_or_method:
-| a=attribute { Attribute a }
+| a=var { Attribute a }
 | m=_function { Method m }
-attribute:
-| _type=UIDENT name=LIDENT SEMICOLON { {_type = _type; name=name} }
 %inline binop:
 | MINUS     { Minus }
 | PLUS      { Plus }

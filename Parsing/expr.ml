@@ -13,13 +13,12 @@ type unop =
 
 type _attribute = {_type : string; name: string}
 
-type attribute_or_method = | Attribute of _attribute | Method of _method 
-and _class = {name: string; parent: string; attributes: _attribute list; methods: _method list}
+type attribute_or_method = | Attribute of var | Method of _method 
+and _class = {name: string; parent: string; attributes: var list; methods: _method list}
 
 and expression =
-	| Var of _attribute
 	| Assign of ident * expression
-	| VarAssign of _attribute * expression
+    | VarCreation of var
 	| Int of int
     | Bool of bool
 	| String of string
@@ -36,6 +35,10 @@ and expression =
 	| FunctionCall of ident * expression list
 	| If of expression * expression list
 	| IfElse of expression * expression list * expression list
+
+and var =
+    | VarAssign of _attribute * expression
+    | Var of _attribute
 
 and ident =
     | NamedIdent of string 
@@ -71,12 +74,9 @@ let unop_to_string = function
 let dattr_to_string = function
 	| {_type=t; name=n} -> t ^ " " ^ n
 
-let attr_to_string = function 
-	| a -> "\t" ^ (dattr_to_string a) ^ ";"
-
 let rec class_to_string = function |
 	Class({name=name; parent=parent; attributes=attrs; methods=meths}) ->
-		let str_list = ["class " ^ name ^ " inherits " ^ parent ^ " {"] @ (List.map attr_to_string attrs) 
+		let str_list = ["class " ^ name ^ " inherits " ^ parent ^ " {"] @ (List.map var_to_string attrs) 
         @ (List.map method_to_string meths)  @ ["}"] in
 		String.concat "\n" str_list
 
@@ -84,12 +84,15 @@ and ident_to_string = function
     | NamedIdent s -> s
     | MemberVar (e, s) -> "("^(dexpr_to_string e)^")."^s 
 
+and var_to_string = function 
+    | Var a -> "var " ^ (dattr_to_string a) ^ ";"
+    | VarAssign (a, expr) ->  "varassign " ^ (dattr_to_string a) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
+
 and dexpr_to_string expr = 
 	let rec body_to_string body = "{\n" ^ (String.concat "\n" (List.map (function x -> (dexpr_to_string x) ^ ";") body)) ^ "\n}"
 	in match expr with
-		| Var a -> "var " ^ (dattr_to_string a) ^ ";"
+        | VarCreation c -> var_to_string c
 		| Assign (id,expr) -> (ident_to_string id) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
-		| VarAssign (a, expr) ->  "varassign " ^ (dattr_to_string a) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
 		| Int x -> string_of_int x
         | Bool x -> string_of_bool x
 		| String s -> s
