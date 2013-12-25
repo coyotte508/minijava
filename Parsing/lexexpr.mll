@@ -66,6 +66,7 @@ rule nexttoken = parse
 | "new" { NEW }
 | "this" { THIS }
 | "null" { NULL }
+| "instanceof" { INSTANCEOF }
 | uident { UIDENT (Lexing.lexeme lexbuf) }
 | lident { LIDENT (Lexing.lexeme lexbuf) }
 | integer { INT (int_of_string (Lexing.lexeme lexbuf)) }

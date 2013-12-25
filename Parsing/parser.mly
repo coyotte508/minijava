@@ -14,7 +14,7 @@
 %}
 
 %token EOF SEMICOLON ASSIGN COMMA
-%token CLASS EXTENDS NEW THIS DOT NULL
+%token CLASS EXTENDS NEW THIS DOT NULL INSTANCEOF
 %token IF ELSE AND OR
 %token LPAR RPAR LCURL RCURL
 %token PLUS MINUS TIMES DIVIDED MOD NOT
@@ -28,6 +28,7 @@
 %left OR
 %left AND
 %left EQ LESSER LESSEREQ GREATER GREATEREQ NOTEQ (* 1+1 > 2 is (1+1) > 2 *)
+%left INSTANCEOF (* 1+1 instanceof Int => (1+1) instanceof Int *)
 %left PLUS MINUS
 %left MOD (* 2*2 % 3*2 is (2*2)%(3*2). 2+2%3 is 2+(2%3) *)
 %left TIMES DIVIDED
@@ -70,6 +71,7 @@ blexpr: /* bottom-level expression */
 | MINUS e=blexpr %prec SOP         {SOperation(SMinus, e)} 
 | PLUS e=blexpr %prec SOP          {SOperation(SPlus, e)}
 | NOT e=blexpr %prec SOP           {SOperation(SNot, e)} 
+| e1=blexpr INSTANCEOF cl=UIDENT   {InstanceOf(e1, cl)}
 | e1=blexpr op=binop e2=blexpr     {Operation(e1, op, e2)}
 | a=assign                         {a}
 | id=ident                         {Ident id}

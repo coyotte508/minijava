@@ -15,4 +15,12 @@ class B extends A {
 
 		inter.distance();
 	}
+
+	Bool isFamily(Object b) {
+		if (b == null) {
+			false;
+		} else  {
+			b instanceof A;
+		}
+	}
 }
