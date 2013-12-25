@@ -54,6 +54,7 @@ rule nexttoken = parse
 | "*" { TIMES }
 | "/" { DIVIDED } 
 | "," { COMMA }
+| "." { DOT }
 | "%" { MOD }
 | "if" { IF }
 | "else" { ELSE }
@@ -62,6 +63,7 @@ rule nexttoken = parse
 | "true" { BOOL true}
 | "false" { BOOL false }
 | "extends" { EXTENDS }
+| "new" { NEW }
 | uident { UIDENT (Lexing.lexeme lexbuf) }
 | lident { LIDENT (Lexing.lexeme lexbuf) }
 | integer { INT (int_of_string (Lexing.lexeme lexbuf)) }

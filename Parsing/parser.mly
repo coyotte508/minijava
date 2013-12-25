@@ -13,7 +13,9 @@
 	| h::t -> getmeths t
 %}
 
-%token CLASS EOF SEMICOLON ASSIGN COMMA IF ELSE EXTENDS AND OR
+%token EOF SEMICOLON ASSIGN COMMA
+%token CLASS EXTENDS NEW DOT 
+%token IF ELSE AND OR
 %token LPAR RPAR LCURL RCURL
 %token PLUS MINUS TIMES DIVIDED MOD NOT
 %token EQ LESSER LESSEREQ GREATER GREATEREQ NOTEQ
@@ -29,6 +31,7 @@
 %left PLUS MINUS
 %left MOD (* 2*2 % 3*2 is (2*2)%(3*2). 2+2%3 is 2+(2%3) *)
 %left TIMES DIVIDED
+%left DOT
 %right SOP
 
 (* Entry point *)
@@ -63,24 +66,28 @@ condition:
 | IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL { If(cond, body) }
 | IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL ELSE LCURL elsebody=expr* RCURL { IfElse(cond, body, elsebody) }
 blexpr: /* bottom-level expression */
+| NEW _class=UIDENT LPAR RPAR      { New(_class) }
 | MINUS e=blexpr %prec SOP         {SOperation(SMinus, e)} 
 | PLUS e=blexpr %prec SOP          {SOperation(SPlus, e)}
 | NOT e=blexpr %prec SOP           {SOperation(SNot, e)} 
 | e1=blexpr op=binop e2=blexpr     {Operation(e1, op, e2)}
 | a=assign                         {a}
-| name=LIDENT                      {Name name}
+| id=ident                         {Ident id}
 | v=INT                            {Int v}
 | v=STRING                         {String v}
 | v=BOOL                           {Bool v}
 | LPAR e=blexpr RPAR               {e}
 | LPAR ex=expr* RPAR               {ExpressionBlock(ex)}
-| name=LIDENT LPAR args=callargslist RPAR {FunctionCall(name, args)}
+| name=ident LPAR args=callargslist RPAR {FunctionCall(name, args)}
 callargslist:
 | {[]}
 | bl=blexpr { [bl] }
 | bl=blexpr COMMA args=callargslist { bl :: args }
 assign:
-| name=LIDENT ASSIGN e=blexpr { Assign (name, e) }
+| name=ident ASSIGN e=blexpr { Assign (name, e) }
+ident:
+| obj=blexpr DOT mvar=LIDENT       {MemberVar(obj, mvar)}
+| id=LIDENT                        {NamedIdent id}
 attribute_or_method:
 | a=attribute { Attribute a }
 | m=_function { Method m }
