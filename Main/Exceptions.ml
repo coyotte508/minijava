@@ -1,1 +1,2 @@
 exception SyntaxError
+exception GrammarError
