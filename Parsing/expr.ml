@@ -36,9 +36,7 @@ and expression =
 	| If of expression * expression list
 	| IfElse of expression * expression list * expression list
 
-and var =
-    | VarAssign of _attribute * expression
-    | Var of _attribute
+and var = _attribute * expression
 
 and ident =
     | NamedIdent of string 
@@ -85,8 +83,8 @@ and ident_to_string = function
     | MemberVar (e, s) -> "("^(dexpr_to_string e)^")."^s 
 
 and var_to_string = function 
-    | Var a -> "var " ^ (dattr_to_string a) ^ ";"
-    | VarAssign (a, expr) ->  "varassign " ^ (dattr_to_string a) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
+    | (a, Null) -> "var " ^ (dattr_to_string a) ^ ";"
+    | (a, expr) ->  "varassign " ^ (dattr_to_string a) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
 
 and dexpr_to_string expr = 
 	let rec body_to_string body = "{\n" ^ (String.concat "\n" (List.map (function x -> (dexpr_to_string x) ^ ";") body)) ^ "\n}"

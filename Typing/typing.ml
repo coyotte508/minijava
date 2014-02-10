@@ -30,27 +30,25 @@ let string_to_type = function
 	| "String" -> TString
 	| "Object" -> TObject
 	| s -> TClass (s)
- 
+
 let rec get_type node ctx =
 	try
 		let x = Hashtbl.find metatable node in x._type 
 	with Not_found ->
-		let t = match node with
+		let t = (match node with
 		| Null -> TObject
 		| Bool (b) -> TBool
 		| Int (i) -> TInt
 		| String (s) -> TString
 		| Unit -> TVoid
-		| VarCreation(Var(v)) -> ctx#add_var v; string_to_type(v._type)
-		| VarCreation(VarAssign(v, _)) -> ctx#add_var v; string_to_type(v._type)
+		| VarCreation(v, _) -> ctx#add_var v; string_to_type(v._type)
 		| Assign(id, _) -> get_ident_type id ctx
 		| Ident(id) -> get_ident_type id ctx
 		| This -> ctx#this_type
 		| New t -> string_to_type(t)
 		| Operation (left, op, right) ->
 			(match op with
-			| Plus | Minus | Divided | Times | Mod ->
-				get_type(left)
+			| Plus | Minus | Divided | Times | Mod -> get_type left ctx
 			| _ -> TBool)
     	| InstanceOf (expr, str) -> TBool
     	| Cast (str, expr) -> string_to_type str
@@ -60,7 +58,7 @@ let rec get_type node ctx =
 		| If (_, l) -> 
 			let t = get_expr_list_type l ctx in
 			if t != TVoid then
-				raise GrammarError "Type of if must be void"
+				raise (GrammarError "Type of if must be void")
 			else
 				t
 		| IfElse (_, l1, l2) ->
@@ -69,7 +67,8 @@ let rec get_type node ctx =
 			if t1 == t2 then
 				t1
 			else 
-				raise GrammarError "Both types of if / else must be the same"
+				raise (GrammarError "Both types of if / else must be the same")
+		) in (Hashtbl.add metatable node {_type = t}; t)
 
 and get_expr_list_type l ctx = match l with
 	| [] -> TVoid

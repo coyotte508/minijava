@@ -62,8 +62,8 @@ expr:
 | i=condition {i}
 | e=blexpr SEMICOLON {e}
 var:
-| _type=UIDENT name=LIDENT SEMICOLON { Var {_type = _type; name=name} }
-| _type=UIDENT name=LIDENT ASSIGN e=expr { VarAssign ({_type = _type; name=name}, e)}
+| _type=UIDENT name=LIDENT SEMICOLON { ({_type = _type; name=name}, Null) }
+| _type=UIDENT name=LIDENT ASSIGN e=expr { ({_type = _type; name=name}, e)}
 condition:
 | IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL { If(cond, body) }
 | IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL ELSE LCURL elsebody=expr* RCURL { IfElse(cond, body, elsebody) }

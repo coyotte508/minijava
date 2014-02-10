@@ -1,2 +1,2 @@
 exception SyntaxError
-exception GrammarError
+exception GrammarError of string
