@@ -21,7 +21,7 @@ minijava is a bit like Java. Except...
 * Cast has +++ priority, `(A)b.x` is the same as `((A)b).x`
 * `this` is mandatory when calling up a member variable / function
 * Strings can be delimited by simple or double quotes
-* two built-ins : `Void print_int(Int)` and `Void print_string(String)`
+* two built-ins : `print_int` and `print_string`
 * Parentheses have their natural role, but they can also act as `begin` / `end`
 
 For example, here's how the parentheses can work:
