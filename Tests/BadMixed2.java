@@ -1,10 +1,3 @@
-Bool good;
-Bool bad;
-
-Void print (String a, String b) {
-
-}
-
 String result = 
 	(
 		if (good && !bad) {

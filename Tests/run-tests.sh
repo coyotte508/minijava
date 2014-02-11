@@ -42,6 +42,7 @@ FunctionCall.java
 Conditions.java
 Mixed2.java
 Class4.java
+Overload.java
 HERE
 
 for a in "${MAPFILE[@]}"; do
@@ -56,6 +57,11 @@ echo "================================="
 
 readarray <<HERE
 BadClass.java
+BadOverload.java
+BadOverload2.java
+BadCyclic.java
+BadMixed2.java
+NoThis.java
 HERE
 
 for a in "${MAPFILE[@]}"; do

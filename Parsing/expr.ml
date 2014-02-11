@@ -16,7 +16,9 @@ type _attribute = {_type : string; name: string}
 type attribute_or_method = | Attribute of var | Method of _method 
 and _class = {name: string; parent: string; attributes: var list; methods: _method list}
 
-and expression =
+and expression = {mutable expr: value_expression; id: int}
+
+and value_expression =
 	| Assign of ident * expression
     | VarCreation of var
 	| Int of int
@@ -48,6 +50,10 @@ type class_or_expr =
 	| Class of _class
 	| Expression of expression
 	| Function of _method
+
+let count = ref 0
+
+let dref ex = count := !count + 1; {expr=ex; id=(!count)}
 
 let op_to_string = function
     | Plus -> "+"
@@ -83,12 +89,12 @@ and ident_to_string = function
     | MemberVar (e, s) -> "("^(dexpr_to_string e)^")."^s 
 
 and var_to_string = function 
-    | (a, Null) -> "var " ^ (dattr_to_string a) ^ ";"
+    | (a, expr) when expr.expr == Null -> "var " ^ (dattr_to_string a) ^ ";"
     | (a, expr) ->  "varassign " ^ (dattr_to_string a) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
 
 and dexpr_to_string expr = 
 	let rec body_to_string body = "{\n" ^ (String.concat "\n" (List.map (function x -> (dexpr_to_string x) ^ ";") body)) ^ "\n}"
-	in match expr with
+	in match expr.expr with
         | VarCreation c -> var_to_string c
 		| Assign (id,expr) -> (ident_to_string id) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
 		| Int x -> string_of_int x

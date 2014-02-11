@@ -17,6 +17,7 @@ minijava is a bit like Java. Except...
 * Functions can be defined outside classes, code can execute toplevel. 
 * No `return` keyword, last expression is the return value
 * Cast has +++ priority, `(A)b.x` is the same as `((A)b).x`
+* `this` is mandatory when calling up a member variable / function
 * Parentheses have their natural role, but they can also act as `begin` / `end`
 
 For example, here's how the parentheses can work:

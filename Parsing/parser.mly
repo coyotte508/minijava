@@ -58,39 +58,39 @@ arglist:
 | _type=UIDENT name=LIDENT { [{_type=_type; name=name}] }
 | _type=UIDENT name=LIDENT COMMA args=arglist { {_type=_type; name=name} :: args }
 expr:
-| v=var {VarCreation v}
+| v=var {dref (VarCreation v)}
 | i=condition {i}
 | e=blexpr SEMICOLON {e}
 var:
-| _type=UIDENT name=LIDENT SEMICOLON { ({_type = _type; name=name}, Null) }
+| _type=UIDENT name=LIDENT SEMICOLON { ({_type = _type; name=name}, dref Null) }
 | _type=UIDENT name=LIDENT ASSIGN e=expr { ({_type = _type; name=name}, e)}
 condition:
-| IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL { If(cond, body) }
-| IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL ELSE LCURL elsebody=expr* RCURL { IfElse(cond, body, elsebody) }
+| IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL { dref (If(cond, body)) }
+| IF LPAR cond=blexpr RPAR LCURL body=expr* RCURL ELSE LCURL elsebody=expr* RCURL { dref (IfElse(cond, body, elsebody)) }
 blexpr: /* bottom-level expression */
-| NEW _class=UIDENT LPAR RPAR      {New(_class) }
-| LPAR _class=UIDENT RPAR e=blexpr %prec CAST {Cast(_class, e) }
-| MINUS e=blexpr %prec SOP         {SOperation(SMinus, e)} 
-| PLUS e=blexpr %prec SOP          {SOperation(SPlus, e)}
-| NOT e=blexpr %prec SOP           {SOperation(SNot, e)} 
-| e1=blexpr INSTANCEOF cl=UIDENT   {InstanceOf(e1, cl)}
-| e1=blexpr op=binop e2=blexpr     {Operation(e1, op, e2)}
+| NEW _class=UIDENT LPAR RPAR      {dref (New(_class)) }
+| LPAR _class=UIDENT RPAR e=blexpr %prec CAST {dref (Cast(_class, e)) }
+| MINUS e=blexpr %prec SOP         {dref (SOperation(SMinus, e))} 
+| PLUS e=blexpr %prec SOP          {dref (SOperation(SPlus, e))}
+| NOT e=blexpr %prec SOP           {dref (SOperation(SNot, e))} 
+| e1=blexpr INSTANCEOF cl=UIDENT   {dref (InstanceOf(e1, cl))}
+| e1=blexpr op=binop e2=blexpr     {dref (Operation(e1, op, e2))}
 | a=assign                         {a}
-| id=ident                         {Ident id}
-| THIS                             {This}
-| NULL                             {Null}
-| v=INT                            {Int v}
-| v=STRING                         {String v}
-| v=BOOL                           {Bool v}
+| id=ident                         {dref (Ident id)}
+| THIS                             {dref This}
+| NULL                             {dref (Null)}
+| v=INT                            {dref (Int v)}
+| v=STRING                         {dref (String v)}
+| v=BOOL                           {dref (Bool v)}
 | LPAR e=blexpr RPAR               {e}
-| LPAR ex=expr* RPAR               {ExpressionBlock(ex)}
-| name=ident LPAR args=callargslist RPAR {FunctionCall(name, args)}
+| LPAR ex=expr* RPAR               {dref (ExpressionBlock(ex))}
+| name=ident LPAR args=callargslist RPAR {dref (FunctionCall(name, args))}
 callargslist:
 | {[]}
 | bl=blexpr { [bl] }
 | bl=blexpr COMMA args=callargslist { bl :: args }
 assign:
-| name=ident ASSIGN e=blexpr { Assign (name, e) }
+| name=ident ASSIGN e=blexpr { dref (Assign (name, e)) }
 ident:
 | obj=blexpr DOT mvar=LIDENT       {MemberVar(obj, mvar)}
 | id=LIDENT                        {NamedIdent id}

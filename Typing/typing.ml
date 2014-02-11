@@ -8,7 +8,7 @@ type node_type =
 	| TObject
 	| TVoid
 	| TClass of string
-	| TFunc of node_type
+	| TFunc of node_type * node_type list
 
 (* Can be extended to add info about location, ... *)
 type metadata = { _type: node_type }
@@ -31,11 +31,21 @@ let string_to_type = function
 	| "Object" -> TObject
 	| s -> TClass (s)
 
+let rec type_to_string = function 
+	| TBool -> "Bool"
+	| TInt -> "Int"
+	| TObject -> "Object"
+	| TString -> "String"
+	| TVoid -> "Void"
+	| TClass s -> s
+	| TFunc(t1, l) -> (type_to_string t1) ^ "(" ^ (String.concat ", " (List.map type_to_string l)) ^ ")"
+
 let rec get_type node ctx =
 	try
-		let x = Hashtbl.find metatable node in x._type 
+		let x = Hashtbl.find metatable node in 
+		x._type
 	with Not_found ->
-		let t = (match node with
+		let t = (match node.expr with
 		| Null -> TObject
 		| Bool (b) -> TBool
 		| Int (i) -> TInt

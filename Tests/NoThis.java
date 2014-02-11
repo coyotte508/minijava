@@ -1,3 +1,4 @@
+/* Calls isFamily(b) instead of this.isFamily(b) */
 class A {
 	Int x;
 	Int y;
@@ -29,7 +30,7 @@ class B extends A {
 	}
 
 	Bool greeting(Object b) {
-		if (this.isFamily(b)) {
+		if (isFamily(b)) {
 			Int distance = (A)b.distance();
 			if (distance > 10) {
 				print("hello, oh so far away..." );
