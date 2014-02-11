@@ -37,6 +37,7 @@ and value_expression =
 	| FunctionCall of ident * expression list
 	| If of expression * expression list
 	| IfElse of expression * expression list * expression list
+    | BuiltIn of string
 
 and var = _attribute * expression
 
@@ -53,7 +54,16 @@ type class_or_expr =
 
 let count = ref 0
 
+(* Used so each expression has a unique hash in the hashtable *)
 let dref ex = count := !count + 1; {expr=ex; id=(!count)}
+
+let indent = ref 0
+
+let pindent () = String.make (!indent) ' '
+
+let incr_indent () = indent := !indent + 4
+
+let decr_indent () = indent := !indent - 4
 
 let op_to_string = function
     | Plus -> "+"
@@ -80,9 +90,10 @@ let dattr_to_string = function
 
 let rec class_to_string = function |
 	Class({name=name; parent=parent; attributes=attrs; methods=meths}) ->
-		let str_list = ["class " ^ name ^ " inherits " ^ parent ^ " {"] @ (List.map var_to_string attrs) 
+        incr_indent();
+		let str_list = ["class " ^ name ^ " inherits " ^ parent ^ " {"] @ (List.map (fun x -> (pindent()) ^ (var_to_string x)) attrs) 
         @ (List.map method_to_string meths)  @ ["}"] in
-		String.concat "\n" str_list
+		(decr_indent(); String.concat "\n" str_list)
 
 and ident_to_string = function
     | NamedIdent s -> s
@@ -93,7 +104,10 @@ and var_to_string = function
     | (a, expr) ->  "varassign " ^ (dattr_to_string a) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
 
 and dexpr_to_string expr = 
-	let rec body_to_string body = "{\n" ^ (String.concat "\n" (List.map (function x -> (dexpr_to_string x) ^ ";") body)) ^ "\n}"
+	let rec body_to_string body =
+        let orindent = pindent() in incr_indent(); 
+        let bodys =  (String.concat "\n" (List.map (function x -> (pindent ()) ^ (dexpr_to_string x) ^ ";") body)) in 
+        decr_indent(); "{\n" ^ bodys ^ "\n" ^ orindent ^ "}"
 	in match expr.expr with
         | VarCreation c -> var_to_string c
 		| Assign (id,expr) -> (ident_to_string id) ^ " = (" ^ (dexpr_to_string expr) ^ ")"
@@ -117,9 +131,10 @@ and dexpr_to_string expr =
 
 and method_to_string = function
     | {return_type = return_type; name = name; arguments = arguments; body = body} 
-		-> "function " ^ return_type ^ " named " ^ name ^ " (" ^  (String.concat ", " (List.map dattr_to_string arguments)) ^ ") {\n"
-			^ (String.concat "\n" (List.map (function x -> (dexpr_to_string x) ^ ";") body))
-			^ "\n}"
+		->  let orindent = pindent() in 
+            let bodys = (incr_indent(); String.concat "\n" (List.map (function x -> (pindent()) ^ (dexpr_to_string x) ^ ";") body)) in 
+            orindent ^ "function " ^ return_type ^ " named " ^ name ^ " (" ^  (String.concat ", " (List.map dattr_to_string arguments)) ^ ") {\n"
+			^ bodys ^ (decr_indent(); "\n" ^ orindent ^ "}")
 
 let expr_to_string = function 
 	| Class cl -> class_to_string (Class cl)

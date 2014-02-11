@@ -5,11 +5,15 @@ open Expr
 let execute lexbuf verbose = 
 	let exprs = (Parser.compile Lexexpr.nexttoken lexbuf) in
 	(
-		if (verbose) then print_endline (Expr.exprs_to_string exprs);
+		if (verbose) then (
+			print_endline (Expr.exprs_to_string exprs);
+		);
+		print_endline "----------";
 		let ctx = new Context.context in
 		Traveler.gather_toplevel exprs ctx;
 		Traveler.visit_tree Typing.get_type exprs ctx;
 		Traveler.visit_tree Typing.ensure_type exprs ctx;
 		ctx#ensure_return_types;
+		Execute.execute_toplevel exprs ctx
 		(*print_endline "typing todo"*)
 	)

@@ -70,19 +70,19 @@ let rec get_type node ctx =
     	| SOperation (op, expr) -> get_type expr ctx
     	| ExpressionBlock (l) -> get_expr_list_type l ctx 
     	| FunctionCall (f, _) -> ctx#returntype_of_function(f)
-		| If (_, l) -> 
-			let t = get_expr_list_type l ctx in
-			if t != TVoid then
-				raise (GrammarError "Type of if must be void")
-			else
-				t
+		| If _ -> TVoid
+		| BuiltIn _ -> TVoid
 		| IfElse (_, l1, l2) ->
 			let t1 = get_expr_list_type l1 ctx in
 			let t2 = get_expr_list_type l2 ctx in
-			if t1 == t2 then
-				t1
-			else 
-				raise (GrammarError "Both types of if / else must be the same")
+			if ctx#type_implicitly_castable t1 t2 then
+				t2
+			else (
+				if ctx#type_implicitly_castable t2 t1 then 
+				 	t1
+				else 
+					raise (GrammarError "Both types of if / else must be compatible.")
+			)
 		) in (Hashtbl.add metatable node {_type = t}; t)
 
 and get_expr_list_type l ctx = match l with
@@ -105,9 +105,10 @@ let ensure_type node ctx =
 	| Operation (left, op, right) ->
 		let t1 = get_type left ctx and t2 = get_type right ctx in 
 		(match op with
-		| Plus | Minus | Divided | Times | Mod | Lesser | Greater | LesserEq | GreaterEq 
+		| Minus | Divided | Times | Mod | Lesser | Greater | LesserEq | GreaterEq 
 			-> if t1 != TInt or t2 != TInt then raise (GrammarError ("Both operands must be of type Int"))
 		| And | Or -> if t1 != TBool or t2 != TBool then raise (GrammarError ("Both operands must be of type Bool"))
+		| Plus -> if t1 != t2 or (t1 != TInt && t1 != TString) then raise (GrammarError ("Both operands of + must be of type Int or String"))
 		| _ -> ())
 	| Cast (str, expr) -> let t1 = string_to_type str in let t2 = get_type expr ctx in 
 		if ctx#type_implicitly_castable t1 t2 or ctx#type_implicitly_castable t2 t1 then ()
@@ -125,7 +126,7 @@ let ensure_type node ctx =
 		else (
 			let rec match_arg_type lt larg =
 			if lt != [] then (
-				if ctx#type_implicitly_castable (List.hd lt) (get_type (List.hd args) ctx) then match_arg_type (List.tl lt) (List.tl larg) else
+				if ctx#type_implicitly_castable (get_type (List.hd args) ctx) (List.hd lt) then match_arg_type (List.tl lt) (List.tl larg) else
 				raise (GrammarError ("Function " ^ (ident_to_string f) ^ " called with the wrong type of arguments; expected " ^ 
 									 (type_to_string (List.hd lt)) ^ " and got " ^ (type_to_string (get_type (List.hd args) ctx))))
 			) else () in match_arg_type argst args

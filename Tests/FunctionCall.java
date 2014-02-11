@@ -3,4 +3,4 @@ Int zero() {
 }
 
 Int x = zero() * 10;
-x * x;
+print_int(x * x);

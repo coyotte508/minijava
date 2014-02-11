@@ -1,14 +1,6 @@
 open Expr
 open Exceptions
-
-(* Can be extended to add info about location, ... *)
-type scopedata = { _type: Typing.node_type }
-type attributedef = { _type: Typing.node_type; init_val: expression }
-type functiondef = { return_type: Typing.node_type; arguments: _attribute list; body: expression list }
-type classdata = { attributedefs: (string, attributedef) Hashtbl.t;
-					methoddefs:   (string, functiondef) Hashtbl.t;
-					parent: string
-					}
+open Value
 
 let func_type (func_data:functiondef) =
 	let mtype =  func_data.return_type in 
@@ -17,15 +9,17 @@ let func_type (func_data:functiondef) =
 
 class context =
 	let object_class = {attributedefs = Hashtbl.create 0; methoddefs = Hashtbl.create 0; parent=""} in
+	let print_int = { return_type = Typing.TVoid; arguments = [{_type="Int"; name="_"}]; body = [dref (BuiltIn "print_int")]} in 
+	let print_string = { return_type = Typing.TVoid; arguments = [{_type="String"; name="_"}]; body = [dref (BuiltIn "print_string")]} in 
 	object (self)
         (* 
         	The last scope is the global scope. New scopes are put at the beginning of the list.
         	Contains string -> scopedata association
         *)
 		val mutable scopes = [Hashtbl.create 0]
-		val mutable this_class = {_type = Typing.TVoid}
+		val mutable this_class = [void_value]
 		val classes = (let c = Hashtbl.create 0 in Hashtbl.add c "Object" object_class; c)
-		val functions = Hashtbl.create 0
+		val functions = (let c = Hashtbl.create 0 in Hashtbl.add c "print_string" print_string; Hashtbl.add c "print_int" print_int; c) 
 		method local_scope = List.hd scopes
 		method clear_scope =
 			assert (List.length scopes == 1); 
@@ -34,7 +28,7 @@ class context =
 			if Hashtbl.mem self#local_scope v.name then
 				raise (GrammarError ("Variable " ^ v.name ^ " already declared in local scope"))
 			else
-				Hashtbl.add self#local_scope v.name {_type = (Typing.string_to_type v._type)}
+				Hashtbl.add self#local_scope v.name {_type = (Typing.string_to_type v._type); value = NoValue}
 		method type_of_var id =
 			try 
 				let data = self#get_var_data id in 
@@ -49,11 +43,16 @@ class context =
 			scopes <- List.tl scopes
 		method dive_into_class c =
 			self#dive_into_scope;
-			assert (this_class._type == Typing.TVoid);
-			this_class <- {_type=TClass(c)}
+			assert ((List.length this_class) == 1);
+			self#stack_this {_type=TClass(c); value = NoValue}
 		method exit_class =
-			this_class <- {_type = Typing.TVoid};
+			self#pop_this;
 			self#exit_scope
+		method stack_this this = 
+			this_class <- this::this_class
+		method pop_this =
+			assert ((List.length this_class) > 1);
+			this_class <- (List.tl this_class) 
 		method dive_into_function (f: _method) =
 			self#dive_into_scope;
 			List.map self#add_var f.arguments;
@@ -72,14 +71,11 @@ class context =
 			 | _ -> 
 			 	raise (GrammarError ((ident_to_string f) ^ " is not a function, and as such can't be called."))
 		method type_implicitly_castable a b =
-			match b with
+			match (a, b) with
 			| _ when Typing.same_type a b -> true 
-			| _ when a == Typing.TNull -> true
-			| Typing.TObject -> true
-			| Typing.TClass c1 -> ( match a with
-				| Typing.TClass c2 -> self#inherits c1 c2
-				| _ -> false
-			)
+			| (Typing.TNull, _) -> true
+			| (_, Typing.TObject) -> true
+			| (Typing.TClass c1, Typing.TClass c2) -> self#inherits c1 c2
 			| _ -> false
 		method type_of_membervar t id =
 			match t with 
@@ -110,8 +106,9 @@ class context =
 				true
 			with GrammarError _ -> false
 		method this_type =
-			if this_class._type == TVoid then raise (GrammarError "this keyword used outside a class")
-			else this_class._type
+			if self#this_val._type == TVoid then raise (GrammarError "this keyword used outside a class")
+			else self#this_val._type
+		method this_val : scopedata = List.hd this_class
 		method get_class_data c =
 			try 
 				Hashtbl.find classes c
@@ -122,9 +119,13 @@ class context =
 			else (
 				if (String.compare a "Object") == 0 then false else
 				(
-					let parent = (self#get_class_data a).parent in self#inherits parent b
+					try let parent = (self#get_class_data a).parent in self#inherits parent b
+					with GrammarError gerror -> false
 				)
 			) 
+		method get_wrapped_function f = 
+			let x = self#get_function_data f in 
+			{_type = func_type x; value = FunctionValue x}
 		method get_function_data f = 
 			try 
 				Hashtbl.find functions f
@@ -146,9 +147,27 @@ class context =
 									 ^ " but is initialized as " ^ (Typing.type_to_string rt)))  
 		method ensure_function_return_type fname fdata =
 			let rt = Typing.get_expr_list_type fdata.body self in
-			if not (self#type_implicitly_castable rt fdata.return_type) then
+			if fdata.return_type != Typing.TVoid && (not (self#type_implicitly_castable rt fdata.return_type)) then
 				raise (GrammarError ("Return type of function " ^ fname ^ " is declared as " ^ (Typing.type_to_string fdata.return_type)
 									 ^ " but return value is " ^ (Typing.type_to_string rt)))  
+		method generate_class_val cname = 
+			let cdata = Hashtbl.find classes cname in 
+			let pdata = match cdata.parent with
+			| "" -> NoParent
+			| parent -> Parent (self#generate_class_val parent) in
+			let attr_to_attr aname attr tbl =
+				Hashtbl.add tbl aname (Execute.convert_to attr._type (Execute.execute attr.init_val self) self); tbl in
+			let attrs = Hashtbl.fold attr_to_attr cdata.attributedefs (Hashtbl.create 0) in
+			let meth_to_attr mname meth tbl = 
+				Hashtbl.add tbl mname {_type = func_type meth; value = FunctionValue meth}; tbl in
+			{
+				_type = Typing.string_to_type cname;
+				value = ClassValue {
+					actual_type = Typing.string_to_type cname;
+					parent = pdata;
+					attributes = Hashtbl.fold meth_to_attr cdata.methoddefs attrs
+				}
+			}
 		method get_var_data : string -> scopedata = fun id ->
 			let rec get_scope_var_data id = function 
 			| [] -> raise (GrammarError ("Variable " ^ id ^ " not declared"))
@@ -157,7 +176,8 @@ class context =
 				else get_scope_var_data id tl
 			in get_scope_var_data id scopes
 		method add_class (c: _class) =
-			if Hashtbl.mem classes c.name then
+			if Hashtbl.mem classes c.name or (String.compare c.name "Int" == 0) or (String.compare c.name "Bool" == 0) 
+				or (String.compare c.name "String" == 0) or (String.compare c.name "Void" == 0) then
 				raise (GrammarError ("Class " ^ c.name ^ " already declared, and redefined."));
 			
 			if (c.parent != "Object" && not (Hashtbl.mem classes c.parent)) then

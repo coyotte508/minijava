@@ -25,7 +25,7 @@ let lident = lletter (letter | digit | '_')*
 let newline = ("\r\n" | '\r' | '\n')
 let space = [' ' '\t']
 let integer = digit+
-let string = "\"" [^'"']* "\""
+let string = "\"" [^'"']* "\"" | "'" [^'\'']* "'"
 let linecomment = "//" [^'\r' '\n']*
 let multilinecomment = "/*" ([^'*'] | ('*' [^'/']))* "*/"
 
@@ -70,5 +70,5 @@ rule nexttoken = parse
 | uident { UIDENT (Lexing.lexeme lexbuf) }
 | lident { LIDENT (Lexing.lexeme lexbuf) }
 | integer { INT (int_of_string (Lexing.lexeme lexbuf)) }
-| string { STRING (Lexing.lexeme lexbuf) }
+| string as s { STRING (String.sub s 1 ((String.length s) - 2)) }
 | _ as c { raise (Failure ("Unrecognized character: '" ^ (String.make 1 c) ^ "'")) }

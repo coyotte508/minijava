@@ -8,7 +8,7 @@ class A {
 	}
 }
 
-String print() {
+Void print(String x) {
 	
 }
 

@@ -1,3 +1,5 @@
+/* Here print() is called with the wrong number of arguments */
+
 class A {
 	Int x;
 	Int y;

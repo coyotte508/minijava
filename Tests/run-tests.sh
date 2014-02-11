@@ -39,7 +39,7 @@ Function2.java
 Function3.java
 Mixed1.java
 FunctionCall.java
-Conditions.java
+Condition.java
 Mixed2.java
 Class4.java
 Overload.java
