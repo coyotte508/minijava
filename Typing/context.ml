@@ -78,9 +78,9 @@ class context =
 			| Typing.TObject -> true
 			| Typing.TClass c1 -> ( match a with
 				| Typing.TClass c2 -> self#inherits c1 c2
-				| _ -> raise (GrammarError ("Cannot cast primitive type " ^ (Typing.type_to_string a) ^ " into type " ^ (Typing.type_to_string b)))
+				| _ -> false
 			)
-			| _ -> raise (GrammarError ("Cannot cast " ^ (Typing.type_to_string a) ^ " into primitive type " ^ (Typing.type_to_string b)))
+			| _ -> false
 		method type_of_membervar t id =
 			match t with 
 			| Typing.TClass(s) ->
@@ -130,6 +130,25 @@ class context =
 				Hashtbl.find functions f
 			with Not_found ->
 				raise (GrammarError ("Function " ^ f ^ " unknown."))
+		method ensure_return_types =
+			Hashtbl.iter (fun x y -> self#ensure_class_return_types x y) classes;
+			Hashtbl.iter (fun x y -> self#ensure_function_return_type x y) functions;
+		method ensure_class_return_types cname cdata =
+			try 
+				Hashtbl.iter (fun x y -> self#ensure_function_return_type x y) cdata.methoddefs;
+				Hashtbl.iter (fun x y -> self#ensure_attribute_return_type x y) cdata.attributedefs;
+			with GrammarError gerror ->
+				raise (GrammarError ("Inside class " ^ cname ^ ": " ^ gerror)) 
+		method ensure_attribute_return_type aname adata =
+			let rt = Typing.get_type adata.init_val self in
+			if not (self#type_implicitly_castable rt adata._type) then
+				raise (GrammarError ("Type of attribute " ^ aname ^ " is declared as " ^ (Typing.type_to_string adata._type)
+									 ^ " but is initialized as " ^ (Typing.type_to_string rt)))  
+		method ensure_function_return_type fname fdata =
+			let rt = Typing.get_expr_list_type fdata.body self in
+			if not (self#type_implicitly_castable rt fdata.return_type) then
+				raise (GrammarError ("Return type of function " ^ fname ^ " is declared as " ^ (Typing.type_to_string fdata.return_type)
+									 ^ " but return value is " ^ (Typing.type_to_string rt)))  
 		method get_var_data : string -> scopedata = fun id ->
 			let rec get_scope_var_data id = function 
 			| [] -> raise (GrammarError ("Variable " ^ id ^ " not declared"))

@@ -10,5 +10,6 @@ let execute lexbuf verbose =
 		Traveler.gather_toplevel exprs ctx;
 		Traveler.visit_tree Typing.get_type exprs ctx;
 		Traveler.visit_tree Typing.ensure_type exprs ctx;
+		ctx#ensure_return_types;
 		(*print_endline "typing todo"*)
 	)

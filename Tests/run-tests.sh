@@ -63,6 +63,7 @@ BadCyclic.java
 BadMixed2.java
 NoThis.java
 BadArguments.java
+BadReturnType.java
 HERE
 
 for a in "${MAPFILE[@]}"; do
