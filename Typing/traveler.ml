@@ -13,7 +13,7 @@ let rec apply_fun_toplevel f l ctx = match l with
 	| Class (x) :: tl -> apply_fun_class f x ctx; apply_fun_toplevel f tl ctx
 	| Function (x) :: tl -> apply_fun_function f x ctx; apply_fun_toplevel f tl ctx
 	| Expression (x) :: tl -> apply_fun_expr f x ctx; apply_fun_toplevel f tl ctx
-	| [] -> ()
+	| [] -> ctx#clear_scope
 
 and apply_fun_class f c ctx =
 	ctx#dive_into_class c.name;
@@ -29,7 +29,7 @@ and apply_fun_function f m ctx =
 and apply_fun_expr f expr ctx = 
 	try 
 		(match expr.expr with
-		| VarCreation(v, ex) -> apply_fun_expr f ex ctx; ()
+		| VarCreation(v, ex) -> apply_fun_expr f ex ctx; ctx#add_var v; ()
 		| Assign(id, ex) -> apply_fun_expr f ex ctx; ()
 		| Operation (left, op, right) -> apply_fun_expr f left ctx; apply_fun_expr f right ctx; ()
 		| InstanceOf (ex, str) -> apply_fun_expr f ex ctx; ()

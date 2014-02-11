@@ -9,5 +9,6 @@ let execute lexbuf verbose =
 		let ctx = new Context.context in
 		Traveler.gather_toplevel exprs ctx;
 		Traveler.visit_tree Typing.get_type exprs ctx;
+		Traveler.visit_tree Typing.ensure_type exprs ctx;
 		(*print_endline "typing todo"*)
 	)

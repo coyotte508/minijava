@@ -27,6 +27,9 @@ class context =
 		val classes = (let c = Hashtbl.create 0 in Hashtbl.add c "Object" object_class; c)
 		val functions = Hashtbl.create 0
 		method local_scope = List.hd scopes
+		method clear_scope =
+			assert (List.length scopes == 1); 
+			scopes <- [Hashtbl.create 0]
 		method add_var (v: _attribute) = 
 			if Hashtbl.mem self#local_scope v.name then
 				raise (GrammarError ("Variable " ^ v.name ^ " already declared in local scope"))
@@ -56,12 +59,28 @@ class context =
 			List.map self#add_var f.arguments;
 		method exit_function =
 			self#exit_scope
-		method type_of_function f =
+		method returntype_of_function f =
 			let ft = Typing.get_type (dref (Ident f)) self in 
 			match ft with
 			 | Typing.TFunc(t, _) -> t 
 			 | _ -> 
 			 	raise (GrammarError ((ident_to_string f) ^ " is not a function, and as such can't be called."))
+		method type_of_function f =
+			let ft = Typing.get_type (dref (Ident f)) self in 
+			match ft with
+			 | Typing.TFunc(t, _) -> ft
+			 | _ -> 
+			 	raise (GrammarError ((ident_to_string f) ^ " is not a function, and as such can't be called."))
+		method type_implicitly_castable a b =
+			match b with
+			| _ when Typing.same_type a b -> true 
+			| _ when a == Typing.TNull -> true
+			| Typing.TObject -> true
+			| Typing.TClass c1 -> ( match a with
+				| Typing.TClass c2 -> self#inherits c1 c2
+				| _ -> raise (GrammarError ("Cannot cast primitive type " ^ (Typing.type_to_string a) ^ " into type " ^ (Typing.type_to_string b)))
+			)
+			| _ -> raise (GrammarError ("Cannot cast " ^ (Typing.type_to_string a) ^ " into primitive type " ^ (Typing.type_to_string b)))
 		method type_of_membervar t id =
 			match t with 
 			| Typing.TClass(s) ->
@@ -98,6 +117,14 @@ class context =
 				Hashtbl.find classes c
 			with Not_found ->
 				raise (GrammarError ("Class " ^ c ^ " unknown."))
+		method inherits a b =
+			if (String.compare b "Object") == 0 or (String.compare b a) == 0 or (String.compare a "Null") == 0 then true 
+			else (
+				if (String.compare a "Object") == 0 then false else
+				(
+					let parent = (self#get_class_data a).parent in self#inherits parent b
+				)
+			) 
 		method get_function_data f = 
 			try 
 				Hashtbl.find functions f
@@ -134,7 +161,7 @@ class context =
 								let t2 = func_type value in
 								(
 									(* == doesn't work *)
-									if String.compare (Typing.type_to_string t1) (Typing.type_to_string t2) != 0 then (
+									if not (Typing.same_type t1 t2) then (
 										raise (GrammarError ("Function " ^ f.name ^ " of class " ^ c.name ^ 
 												" already declared in superclass, with an incompatible type/signature: " ^
 											   (Typing.type_to_string t1) ^ " as opposed to " ^ (Typing.type_to_string t2)))
