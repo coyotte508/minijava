@@ -37,4 +37,4 @@ Int y = 1 +
 Progress
 ========
 
-Finished. All's left is improvements (like lifting the restriction on this)
+Finished. All's left is improvements. For example in if/else, it's required that one of the types inherits the other, but an improvement could be finding the common parent to both types (if they're not primitives).
