@@ -43,6 +43,10 @@ let rec type_to_string = function
 	| TClass s -> s
 	| TFunc(t1, l) -> (type_to_string t1) ^ "(" ^ (String.concat ", " (List.map type_to_string l)) ^ ")"
 
+let is_function_type = function
+	| TFunc(_,_) -> true
+	| _ -> false
+
 let same_type a b = (String.compare (type_to_string a) (type_to_string b)) == 0
 
 let rec get_type node ctx =

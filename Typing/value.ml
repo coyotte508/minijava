@@ -21,6 +21,7 @@ and classvalue = {attributes: (string, scopedata) Hashtbl.t; parent: parent; act
 and functiondef = { return_type: Typing.node_type; arguments: _attribute list; body: expression list }
 
 type attributedef = { _type: Typing.node_type; init_val: expression }
+
 type classdata = { attributedefs: (string, attributedef) Hashtbl.t;
 					methoddefs:   (string, functiondef) Hashtbl.t;
 					parent: string

@@ -85,7 +85,7 @@ let unop_to_string = function
     | SMinus -> "-"
     | SNot -> "!"
 
-let dattr_to_string = function
+let dattr_to_string : _attribute -> string = function
 	| {_type=t; name=n} -> t ^ " " ^ n
 
 let rec class_to_string = function |

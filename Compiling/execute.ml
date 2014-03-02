@@ -17,36 +17,20 @@ let store_var vname v ctx =
 	let (storage:scopedata) = ctx#get_var_data vname in 
 	storage.value <- (convert_to storage._type v ctx).value; storage
 
-let rec find_member_var value var = match value.value with
-	| ClassValue (cval) -> (
-		try 
-			Hashtbl.find cval.attributes var
-		with Not_found -> (
-			try 
-				let Parent p = cval.parent in find_member_var p var
-			with
-			| ExecutionError _ ->
-				raise (ExecutionError ("Unexplained error, can't find " ^ var ^ " in class " ^ (Typing.type_to_string cval.actual_type)))
-			| Match_failure _ ->
-				raise (ExecutionError "Unexplained error")
-		)
-	)
-	| NullValue -> raise (ExecutionError "Accessing attribute of null variable")
-
 let rec get_id_storage id ctx = match id with
 	| NamedIdent(x) -> ctx#get_var_data x
 	| MemberVar(expr, x) -> 
 		let evald = execute expr ctx in 
-		find_member_var evald x
+		ctx#find_member_var evald x
 
 and get_function_data f ctx = match f with
 	| NamedIdent(x) -> (void_value, ctx#get_wrapped_function x)
 	| MemberVar(expr, x) -> 
 		let evald = execute expr ctx in 
-		(evald, find_member_var evald x)
+		(evald, ctx#find_member_var evald x)
 
 and store_id id v ctx = 
-	let storage = get_id_storage id ctx in
+	let (storage:scopedata) = get_id_storage id ctx in
 	storage.value <- (convert_to storage._type v ctx).value; storage
 
 and execute node ctx = try (match node.expr with

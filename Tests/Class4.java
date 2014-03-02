@@ -3,10 +3,12 @@ class A {
 	Int y;
 
 	Int distance() {
+		/* x*x + y*y also works */
 		this.x*this.x+this.y*this.y;
 	}
 
 	Void move(Int x, Int y) {
+		/* The advantage of supporting class.membervar! */
 		this.x = x;
 		this.y = y; 
 	}
@@ -22,8 +24,8 @@ print("");
 class B extends A {
 	Int distance2(A other) {
 		A inter = new A();
-		inter.x = other.x - this.x;
-		inter.y = other.y - this.y;
+		inter.x = other.x - x;
+		inter.y = other.y - y;
 
 		inter.distance();
 	}
@@ -37,7 +39,7 @@ class B extends A {
 	}
 
 	Bool greeting(Object b) {
-		if (this.isFamily(b)) {
+		if (isFamily(b)) {
 			Int distance = (A)b.distance();
 			if (distance > 10) {
 				print("Oh so far away..." );

@@ -35,6 +35,7 @@ class context =
 				data._type
 			with GrammarError gerror ->
 				if Hashtbl.mem functions id then func_type (self#get_function_data id)
+				else if self#has_member_var self#this_type id then self#type_of_membervar self#this_type id
 				else raise (GrammarError gerror)
 		method dive_into_scope = 
 			scopes <- (Hashtbl.create 0) :: scopes
@@ -128,9 +129,18 @@ class context =
 			{_type = func_type x; value = FunctionValue x}
 		method get_function_data f = 
 			try 
-				Hashtbl.find functions f
-			with Not_found ->
-				raise (GrammarError ("Function " ^ f ^ " unknown."))
+				(try 
+					Hashtbl.find functions f
+				with Not_found ->
+					raise (GrammarError ("Function " ^ f ^ " unknown.")))
+			with GrammarError gerror ->
+				(* If the function isn't global, try to find it as a member variable of the current class *)
+				try 
+					let (x:scopedata) = self#find_member_var self#this_val f in
+					(match x.value with
+					| FunctionValue(fdef) -> fdef)
+				with _ ->
+					raise (GrammarError gerror)
 		method ensure_return_types =
 			Hashtbl.iter (fun x y -> self#ensure_class_return_types x y) classes;
 			Hashtbl.iter (fun x y -> self#ensure_function_return_type x y) functions;
@@ -168,13 +178,43 @@ class context =
 					attributes = Hashtbl.fold meth_to_attr cdata.methoddefs attrs
 				}
 			}
+		method find_member_var value var = match value.value with
+			| ClassValue (cval) -> (
+				try 
+					let (x:scopedata) = Hashtbl.find cval.attributes var in x
+				with Not_found -> (
+					try 
+						let Parent p = cval.parent in self#find_member_var p var
+					with
+					| ExecutionError _ ->
+						raise (ExecutionError ("Unexplained error, can't find " ^ var ^ " in class " ^ (Typing.type_to_string cval.actual_type)))
+					| Match_failure _ ->
+						raise (ExecutionError "Unexplained error")
+				)
+			)
+			| NullValue -> raise (ExecutionError "Accessing attribute of null variable")
 		method get_var_data : string -> scopedata = fun id ->
-			let rec get_scope_var_data id = function 
-			| [] -> raise (GrammarError ("Variable " ^ id ^ " not declared"))
-			| hd::tl -> 
-				if Hashtbl.mem hd id then Hashtbl.find hd id
-				else get_scope_var_data id tl
-			in get_scope_var_data id scopes
+			try
+				begin 
+					let rec get_scope_var_data id = function 
+					| [] -> raise (GrammarError ("Variable " ^ id ^ " not declared"))
+					| hd::tl -> 
+						if Hashtbl.mem hd id then Hashtbl.find hd id
+						else get_scope_var_data id tl
+					in get_scope_var_data id scopes
+				end
+			with GrammarError gerror ->
+				begin 
+					(* If the variable isn't in the scopes, try to find it as a member variable of the current class *)
+					try 
+						let x = self#find_member_var self#this_val id in
+						begin
+							assert (not (Typing.is_function_type(x._type)));
+							x 
+						end
+					with error ->
+						raise (GrammarError gerror)
+				end
 		method add_class (c: _class) =
 			if Hashtbl.mem classes c.name or (String.compare c.name "Int" == 0) or (String.compare c.name "Bool" == 0) 
 				or (String.compare c.name "String" == 0) or (String.compare c.name "Void" == 0) then

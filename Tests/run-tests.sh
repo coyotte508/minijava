@@ -61,7 +61,6 @@ BadOverload.java
 BadOverload2.java
 BadCyclic.java
 BadMixed2.java
-NoThis.java
 BadArguments.java
 BadReturnType.java
 HERE
